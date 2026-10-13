@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { type EmployeeStatus } from "@/lib/mock-employees";
+import { type EmployeeStatus } from "@/lib/employees";
 
 const config: Record<EmployeeStatus, { label: string; tone: "success" | "warning" | "default" }> = {
   active: { label: "Đang làm việc", tone: "success" },

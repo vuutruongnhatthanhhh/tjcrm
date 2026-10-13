@@ -2,9 +2,10 @@
 
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
-import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CompanySwitcher } from "./company-switcher";
+import { LogoutButton } from "./logout-button";
 import { navItems } from "./nav-items";
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -56,21 +57,29 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="border-t border-border p-3">
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground">
-          <LogOut className="h-4.5 w-4.5" />
-          Đăng xuất
-        </button>
+        <LogoutButton className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground disabled:opacity-60" />
       </div>
     </>
   );
 }
 
-export function Sidebar() {
+export function Sidebar({
+  companyName,
+  companyAvatarUrl,
+}: {
+  companyName?: string;
+  companyAvatarUrl?: string | null;
+}) {
   return (
     <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-surface lg:flex">
       <div className="flex h-16 items-center border-b border-border px-5">
         <Logo />
       </div>
+      {companyName && (
+        <div className="p-3">
+          <CompanySwitcher name={companyName} avatarUrl={companyAvatarUrl} />
+        </div>
+      )}
       <SidebarNav />
     </aside>
   );

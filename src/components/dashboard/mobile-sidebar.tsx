@@ -3,14 +3,19 @@
 import { Logo } from "@/components/logo";
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { CompanySwitcher } from "./company-switcher";
 import { SidebarNav } from "./sidebar";
 
 export function MobileSidebar({
   open,
   onClose,
+  companyName,
+  companyAvatarUrl,
 }: {
   open: boolean;
   onClose: () => void;
+  companyName?: string;
+  companyAvatarUrl?: string | null;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -45,6 +50,11 @@ export function MobileSidebar({
             <X className="h-5 w-5" />
           </button>
         </div>
+        {companyName && (
+          <div className="p-3">
+            <CompanySwitcher name={companyName} avatarUrl={companyAvatarUrl} onNavigate={onClose} />
+          </div>
+        )}
         <SidebarNav onNavigate={onClose} />
       </aside>
     </div>

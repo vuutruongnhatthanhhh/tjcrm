@@ -1,6 +1,7 @@
 "use client";
 
 import { AuthShell } from "@/components/auth/auth-shell";
+import { FormError } from "@/components/auth/form-error";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { ArrowLeft, Mail, MailCheck } from "lucide-react";
@@ -11,14 +12,25 @@ export default function QuenMatKhauPage() {
   const [sent, setSent] = useState(false);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    window.setTimeout(() => {
-      setLoading(false);
+
+    try {
+      await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
       setSent(true);
-    }, 900);
+    } catch {
+      setError("Có lỗi xảy ra, vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (sent) {
@@ -76,6 +88,8 @@ export default function QuenMatKhauPage() {
       }
     >
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <FormError message={error} />
+
         <Field label="Email" htmlFor="email">
           <Input
             id="email"

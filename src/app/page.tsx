@@ -1,5 +1,7 @@
+import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-export default function RootPage() {
-  redirect("/dang-nhap");
+export default async function RootPage() {
+  const user = await getCurrentUser();
+  redirect(user ? "/chon-cong-ty" : "/dang-nhap");
 }

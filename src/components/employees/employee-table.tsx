@@ -1,8 +1,8 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { departments, employees, type EmployeeStatus } from "@/lib/mock-employees";
-import { Search } from "lucide-react";
+import { type Employee, type EmployeeStatus } from "@/lib/employees";
+import { KeyRound, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { RowActions } from "./row-actions";
 import { StatusBadge } from "./status-badge";
@@ -15,11 +15,28 @@ const statusOptions: { value: EmployeeStatus | "all"; label: string }[] = [
 ];
 
 function initials(name: string) {
-  const parts = name.trim().split(" ");
+  const parts = name.trim().split(/\s+/);
   return (parts[parts.length - 2]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "");
 }
 
-export function EmployeeTable() {
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
+  const [year, month, day] = iso.split("-");
+  if (!year || !month || !day) return iso;
+  return `${day}/${month}/${year}`;
+}
+
+export function EmployeeTable({
+  employees,
+  departments,
+  onEdit,
+  onDelete,
+}: {
+  employees: Employee[];
+  departments: string[];
+  onEdit: (employee: Employee) => void;
+  onDelete: (employee: Employee) => void;
+}) {
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("all");
   const [status, setStatus] = useState<EmployeeStatus | "all">("all");
@@ -29,16 +46,26 @@ export function EmployeeTable() {
     return employees.filter((e) => {
       const matchesQuery =
         query.trim() === "" ||
-        e.name.toLowerCase().includes(query.toLowerCase()) ||
+        e.fullName.toLowerCase().includes(query.toLowerCase()) ||
         e.email.toLowerCase().includes(query.toLowerCase());
       const matchesDept = department === "all" || e.department === department;
       const matchesStatus = status === "all" || e.status === status;
       return matchesQuery && matchesDept && matchesStatus;
     });
-  }, [query, department, status]);
+  }, [employees, query, department, status]);
 
   function toggleMenu(id: string) {
     setOpenMenuId((v) => (v === id ? null : id));
+  }
+
+  function handleEdit(e: Employee) {
+    setOpenMenuId(null);
+    onEdit(e);
+  }
+
+  function handleDelete(e: Employee) {
+    setOpenMenuId(null);
+    onDelete(e);
   }
 
   return (
@@ -91,29 +118,44 @@ export function EmployeeTable() {
           <li key={e.id} className="p-4">
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border-strong bg-surface-2 text-sm font-semibold text-foreground">
-                {initials(e.name)}
+                {initials(e.fullName)}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-foreground">{e.name}</p>
+                    <p className="flex items-center gap-1.5 truncate font-medium text-foreground">
+                      {e.fullName}
+                      {e.userId && (
+                        <KeyRound
+                          className="h-3 w-3 shrink-0 text-primary"
+                          aria-label="Đã có tài khoản đăng nhập"
+                        />
+                      )}
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      {e.id} · {e.role}
+                      {e.employeeCode} · {e.role || "—"}
                     </p>
                   </div>
-                  <RowActions open={openMenuId === e.id} onToggle={() => toggleMenu(e.id)} />
+                  <RowActions
+                    open={openMenuId === e.id}
+                    onToggle={() => toggleMenu(e.id)}
+                    onEdit={() => handleEdit(e)}
+                    onDelete={() => handleDelete(e)}
+                  />
                 </div>
 
                 <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                   <StatusBadge status={e.status} />
-                  <span className="rounded-full border border-border-strong px-2.5 py-1 text-xs text-muted-foreground">
-                    {e.department}
-                  </span>
+                  {e.department && (
+                    <span className="rounded-full border border-border-strong px-2.5 py-1 text-xs text-muted-foreground">
+                      {e.department}
+                    </span>
+                  )}
                 </div>
 
                 <div className="mt-2.5 space-y-0.5 text-sm">
-                  <p className="truncate text-foreground">{e.email}</p>
-                  <p className="text-muted-foreground">{e.phone}</p>
+                  <p className="truncate text-foreground">{e.email || "—"}</p>
+                  <p className="text-muted-foreground">{e.phone || "—"}</p>
                 </div>
               </div>
             </div>
@@ -122,7 +164,9 @@ export function EmployeeTable() {
 
         {filtered.length === 0 && (
           <li className="px-4 py-10 text-center text-sm text-muted-foreground">
-            Không tìm thấy nhân viên phù hợp.
+            {employees.length === 0
+              ? "Chưa có nhân viên nào. Bấm “Thêm nhân viên” để bắt đầu."
+              : "Không tìm thấy nhân viên phù hợp."}
           </li>
         )}
       </ul>
@@ -150,26 +194,39 @@ export function EmployeeTable() {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border-strong bg-surface-2 text-xs font-semibold text-foreground">
-                      {initials(e.name)}
+                      {initials(e.fullName)}
                     </span>
                     <div className="min-w-0">
-                      <p className="font-medium text-foreground">{e.name}</p>
-                      <p className="text-xs text-muted-foreground">{e.id}</p>
+                      <p className="flex items-center gap-1.5 font-medium text-foreground">
+                        {e.fullName}
+                        {e.userId && (
+                          <KeyRound
+                            className="h-3 w-3 shrink-0 text-primary"
+                            aria-label="Đã có tài khoản đăng nhập"
+                          />
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{e.employeeCode}</p>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{e.department}</td>
-                <td className="px-4 py-3 text-muted-foreground">{e.role}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.department || "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{e.role || "—"}</td>
                 <td className="px-4 py-3">
-                  <p className="text-foreground">{e.email}</p>
-                  <p className="text-xs text-muted-foreground">{e.phone}</p>
+                  <p className="text-foreground">{e.email || "—"}</p>
+                  <p className="text-xs text-muted-foreground">{e.phone || "—"}</p>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{e.joinDate}</td>
+                <td className="px-4 py-3 text-muted-foreground">{formatDate(e.joinDate)}</td>
                 <td className="px-4 py-3">
                   <StatusBadge status={e.status} />
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <RowActions open={openMenuId === e.id} onToggle={() => toggleMenu(e.id)} />
+                  <RowActions
+                    open={openMenuId === e.id}
+                    onToggle={() => toggleMenu(e.id)}
+                    onEdit={() => handleEdit(e)}
+                    onDelete={() => handleDelete(e)}
+                  />
                 </td>
               </tr>
             ))}
@@ -177,7 +234,9 @@ export function EmployeeTable() {
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
-                  Không tìm thấy nhân viên phù hợp.
+                  {employees.length === 0
+                    ? "Chưa có nhân viên nào. Bấm “Thêm nhân viên” để bắt đầu."
+                    : "Không tìm thấy nhân viên phù hợp."}
                 </td>
               </tr>
             )}

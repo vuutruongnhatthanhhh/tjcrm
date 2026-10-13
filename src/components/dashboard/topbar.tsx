@@ -7,7 +7,17 @@ import { usePathname } from "next/navigation";
 import { navItems } from "./nav-items";
 import { UserMenu } from "./user-menu";
 
-export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
+export function Topbar({
+  onMenuClick,
+  userName,
+  userEmail,
+  userAvatarUrl,
+}: {
+  onMenuClick: () => void;
+  userName?: string;
+  userEmail?: string;
+  userAvatarUrl?: string | null;
+}) {
   const pathname = usePathname();
   const current = navItems.find((item) => item.href === pathname);
 
@@ -55,7 +65,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
 
         <div className="hidden h-8 w-px bg-border sm:block" />
 
-        <UserMenu />
+        <UserMenu name={userName} email={userEmail} avatarUrl={userAvatarUrl} />
       </div>
     </header>
   );

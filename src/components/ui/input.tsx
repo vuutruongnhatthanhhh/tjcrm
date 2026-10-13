@@ -8,7 +8,7 @@ export function Field({
   hint,
   children,
 }: {
-  label?: string;
+  label?: ReactNode;
   htmlFor?: string;
   error?: string;
   hint?: string;
@@ -55,6 +55,7 @@ export function Input({
         className={cn(
           "h-11 w-full rounded-lg border bg-surface px-3.5 text-sm text-foreground placeholder:text-muted-foreground/70 outline-none transition-colors",
           "border-border-strong focus:border-primary focus:ring-2 focus:ring-primary/20",
+          "disabled:cursor-not-allowed disabled:opacity-60",
           error && "border-danger focus:border-danger focus:ring-danger/20",
           icon && "pl-10",
           endSlot && "pr-10",
